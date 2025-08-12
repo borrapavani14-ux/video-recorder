@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Video Recorder</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  video { width: 100%; max-width: 320px; border: 1px solid #ccc; margin-bottom: 10px; }
+  button { margin-right: 10px; padding: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Video Proof Recorder</h2>
+<video id="preview" autoplay muted></video><br>
+<button id="startBtn">Start Recording</button>
+<button id="stopBtn" disabled>Stop Recording</button>
+
+<script>
+let mediaRecorder;
+let recordedChunks = [];
+
+document.getElementById("startBtn").onclick = async function() {
+    let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    document.getElementById("preview").srcObject = stream;
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) recordedChunks.push(e.data);
+    };
+    mediaRecorder.start();
+    document.getElementById("startBtn").disabled = true;
+    document.getElementById("stopBtn").disabled = false;
+};
+
+document.getElementById("stopBtn").onclick = function() {
+    mediaRecorder.stop();
+    mediaRecorder.onstop = async function() {
+        let blob = new Blob(recordedChunks, { type: 'video/mp4' });
+        let reader = new FileReader();
+        reader.onloadend = function() {
+            let base64Data = reader.result.split(',')[1]; 
+            // Send Base64 to Power Automate
+            fetch("https://3299cb60efafe263a7276ab328834e.db.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/334d4c7c43fc45cfb26d29910cf613d2/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=85YJTElGV4e568r9HA58gkQExjZequ_P3KOXOVuo5Wo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    "filename": "video_" + Date.now() + ".mp4",
+                    "filedata": base64Data
+                })
+            }).then(r => alert("Video uploaded successfully!"));
+        };
+        reader.readAsDataURL(blob);
+    };
+    document.getElementById("startBtn").disabled = false;
+    document.getElementById("stopBtn").disabled = true;
+};
+</script>
+
+</body>
+</html>
