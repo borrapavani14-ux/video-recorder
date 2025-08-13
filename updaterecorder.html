@@ -11,26 +11,36 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100vh;
     background: #f8f8f8;
+    height: 100vh;
   }
+
+  h2 {
+    margin: 10px 0;
+  }
+
   video {
     width: 100%;
-    height: 100%;
+    height: calc(100vh - 160px);
     object-fit: cover;
     border: none;
     background: black;
-    transform: scaleX(-1); /* default mirror correction */
-    transition: transform 0.3s ease;
+    transform: scaleX(-1);
   }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
   button { 
-    margin: 5px; 
-    padding: 15px 25px; 
+    padding: 12px 20px; 
     font-size: 16px; 
     cursor: pointer;
   }
-  /* Custom toast style */
+
+  /* Toast Style */
   #toast {
     visibility: hidden;
     min-width: 250px;
@@ -63,7 +73,72 @@
 <body>
 
 <h2>Video Recorder</h2>
-<video id="preview" autoplay muted></video><br>
-<button id="startBtn">Start Recording</button>
-<button id="stopBtn" disabled
+<video id="preview" autoplay muted></video>
 
+<div class="btn-group">
+  <button id="startBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop Recording</button>
+</div>
+
+<div id="toast">Video uploaded successfully!</div>
+
+<script>
+let mediaRecorder;
+let recordedChunks = [];
+
+function showToast(msg) {
+    let toast = document.getElementById("toast");
+    toast.textContent = msg;
+    toast.className = "show";
+    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+}
+
+document.getElementById("startBtn").onclick = async function() {
+    try {
+        let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        document.getElementById("preview").srcObject = stream;
+
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = function(e) {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+        
+        mediaRecorder.start();
+
+        document.getElementById("startBtn").disabled = true;
+        document.getElementById("stopBtn").disabled = false;
+    } catch (err) {
+        alert("Camera/Mic access denied: " + err);
+    }
+};
+
+document.getElementById("stopBtn").onclick = function() {
+    mediaRecorder.stop();
+    mediaRecorder.onstop = async function() {
+        let blob = new Blob(recordedChunks, { type: 'video/mp4' });
+        let reader = new FileReader();
+        reader.onloadend = function() {
+            let base64Data = reader.result.split(',')[1]; 
+            fetch("https://3299cb60efafe263a7276ab328834e.db.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/334d4c7c43fc45cfb26d29910cf613d2/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=85YJTElGV4e568r9HA58gkQExjZequ_P3KOXOVuo5Wo", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    "filename": "video_" + Date.now() + ".mp4",
+                    "filedata": base64Data
+                })
+            }).then(() => {
+                showToast("Video uploaded successfully!");
+            });
+        };
+        reader.readAsDataURL(blob);
+    };
+
+    document.getElementById("startBtn").disabled = false;
+    document.getElementById("stopBtn").disabled = true;
+};
+</script>
+
+</body>
+</html>
