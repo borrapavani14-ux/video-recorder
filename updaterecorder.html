@@ -126,7 +126,8 @@ document.getElementById("stopBtn").onclick = function() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     "filename": "video_" + Date.now() + ".mp4",
-                    "filedata": base64Data
+                    "filedata": base64Data,
+                    "email": document.getElementById("email").value
                 })
             }).then(() => {
                 showToast("Video uploaded successfully!");
@@ -142,3 +143,4 @@ document.getElementById("stopBtn").onclick = function() {
 
 </body>
 </html>
+
