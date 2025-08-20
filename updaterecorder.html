@@ -86,6 +86,10 @@
 let mediaRecorder;
 let recordedChunks = [];
 
+// ✅ URL నుంచి userEmail తీసుకోవడం
+const params = new URLSearchParams(window.location.search);
+const userEmail = params.get("email");
+
 function showToast(msg) {
     let toast = document.getElementById("toast");
     toast.textContent = msg;
@@ -116,12 +120,18 @@ document.getElementById("startBtn").onclick = async function() {
 
 document.getElementById("stopBtn").onclick = function() {
     mediaRecorder.stop();
+
+    // ✅ Camera + Mic close చేయడం
+    let tracks = document.getElementById("preview").srcObject.getTracks();
+    tracks.forEach(track => track.stop());
+
     mediaRecorder.onstop = async function() {
         let blob = new Blob(recordedChunks, { type: 'video/mp4' });
         let reader = new FileReader();
         reader.onloadend = function() {
             let base64Data = reader.result.split(',')[1]; 
-            fetch("https://3299cb60efafe263a7276ab328834e.db.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/334d4c7c43fc45cfb26d29910cf613d2/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=85YJTElGV4e568r9HA58gkQExjZequ_P3KOXOVuo5Wo", {
+            
+            fetch("https://3299cb60efafe263a7276ab328834e.db.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/334d4c7c43fc45cfb26d29910cf613d2/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=85YJTElGV4e568r9HA58gkQExjZequ_P3KOXOVuo5Wo%22", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -131,6 +141,8 @@ document.getElementById("stopBtn").onclick = function() {
                 })
             }).then(() => {
                 showToast("Video uploaded successfully!");
+            }).catch(err => {
+                showToast("Upload failed: " + err);
             });
         };
         reader.readAsDataURL(blob);
@@ -143,8 +155,3 @@ document.getElementById("stopBtn").onclick = function() {
 
 </body>
 </html>
-
-
-
-
-
