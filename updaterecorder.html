@@ -131,7 +131,7 @@ document.getElementById("stopBtn").onclick = function() {
         reader.onloadend = function() {
             let base64Data = reader.result.split(',')[1]; 
             
-            fetch("https://3299cb60efafe263a7276ab328834e.db.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/334d4c7c43fc45cfb26d29910cf613d2/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=85YJTElGV4e568r9HA58gkQExjZequ_P3KOXOVuo5Wo%22", {
+            fetch("https://3299cb60efafe263a7276ab328834e.db.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/334d4c7c43fc45cfb26d29910cf613d2/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=85YJTElGV4e568r9HA58gkQExjZequ_P3KOXOVuo5Wo", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -155,3 +155,4 @@ document.getElementById("stopBtn").onclick = function() {
 
 </body>
 </html>
+
