@@ -89,6 +89,7 @@ let recordedChunks = [];
 // ✅ URL నుంచి userEmail తీసుకోవడం
 const params = new URLSearchParams(window.location.search);
 const userEmail = params.get("email");
+const userName  = params.get("name");
 
 function showToast(msg) {
     let toast = document.getElementById("toast");
@@ -137,7 +138,8 @@ document.getElementById("stopBtn").onclick = function() {
                 body: JSON.stringify({
                     "filename": "video_" + Date.now() + ".mp4",
                     "filedata": base64Data, 
-                    "userEmail": userEmail
+                    "userEmail": userEmail,
+                    "userName": userName
                 })
             }).then(() => {
                 showToast("Video uploaded successfully!");
@@ -155,4 +157,5 @@ document.getElementById("stopBtn").onclick = function() {
 
 </body>
 </html>
+
 
